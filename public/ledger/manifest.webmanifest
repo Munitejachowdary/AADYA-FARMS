@@ -1,0 +1,10 @@
+{
+  "name": "Aadya Farms Milk Ledger",
+  "short_name": "Aadya Ledger",
+  "description": "Offline milk and curd delivery tracker with monthly invoices.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f5f7f8",
+  "theme_color": "#7f1020",
+  "icons": [{"src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable"}]
+}
