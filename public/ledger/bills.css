@@ -1,0 +1,59 @@
+[hidden]{display:none!important}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+.form-actions.wrap{flex-wrap:wrap}
+.payment-history{margin-top:28px;padding-top:22px;border-top:2px solid var(--line);scroll-margin-top:105px}
+.payment-history-link{margin-top:16px}
+.payment-history-link a{color:var(--teal)}
+.payment-table{border-collapse:collapse;width:100%;font-size:.88rem;margin-top:14px}
+.payment-table th{background:var(--soft);text-align:left;padding:10px;font-size:.8rem}
+.payment-table td{padding:12px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.payment-table td small{display:block;color:var(--muted);margin-top:4px;overflow-wrap:anywhere}
+.received-amount{font-weight:800;color:var(--green);white-space:nowrap}
+#paymentsHistoryTotal{color:var(--green);font-size:1.2rem}
+#customerFormTitle{overflow-wrap:anywhere}
+.invoice-mode-switch{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+.batch-dates{grid-template-columns:repeat(3,minmax(0,1fr))}
+.batch-help{margin:15px 0 20px}
+.bill-customer-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:10px 0 16px}
+.bill-customer-choice{display:flex;gap:12px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:13px;cursor:pointer;min-width:0}
+.bill-customer-choice:has(input:checked){background:#edf8f4;border-color:var(--teal)}
+.bill-customer-choice input{width:22px;height:22px;accent-color:var(--teal);flex-shrink:0}
+.bill-customer-choice span{flex:1;min-width:0}
+.bill-customer-choice strong{display:block;font-size:1rem;overflow-wrap:anywhere}
+.bill-customer-choice small{display:block;font-size:.82rem;line-height:1.5;color:var(--muted);margin-top:3px}
+.bill-customer-choice b{font-size:.9rem;white-space:nowrap;color:var(--wine)}
+#batchBillStatus{margin:14px 0}
+.batch-preview{overflow-x:auto;padding:16px 0}
+.bill-sheet{width:194mm;height:278mm;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(4,minmax(0,1fr));gap:3mm;margin:0 auto 18px;background:#fff;padding:0;box-sizing:border-box;color:#18313d;box-shadow:0 5px 20px #15333d12}
+.compact-bill{border:1px dashed #b0c7c3;padding:2.3mm;min-height:0;box-sizing:border-box;background:#fff;display:flex;flex-direction:column;font-family:Arial,Helvetica,sans-serif}
+.compact-brand{display:flex;align-items:center;gap:2mm;background:#eaf6f3;margin:-1.1mm -1.1mm 1.4mm;padding:1mm;min-height:10mm}
+.compact-brand img{width:23mm;height:10mm;object-fit:contain}
+.compact-brand>div{flex:1;min-width:0}
+.compact-brand strong{font-size:10pt;display:block;line-height:1.15}
+.compact-brand span{font-size:6.8pt;display:block;line-height:1.3;overflow-wrap:anywhere}
+.compact-customer{margin:0;font-size:10pt;line-height:1.15;overflow-wrap:anywhere}
+.compact-period{font-size:7pt;color:#52656e;margin:1mm 0 1.6mm}
+.compact-facts{display:grid;grid-template-columns:1fr 1fr;gap:1mm 3mm;font-size:7.5pt;line-height:1.25;margin:0 0 1.8mm}
+.compact-facts>div{display:flex;justify-content:space-between;gap:1.5mm}
+.compact-facts dt{margin:0;color:#52656e}
+.compact-facts dd{margin:0;text-align:right;font-weight:700}
+.compact-payment{display:flex;gap:2mm;padding-top:1.6mm;border-top:1px solid #cfddd9;min-height:22mm;flex:1}
+.compact-totals{flex:1;font-size:8pt;min-width:0}
+.compact-totals>div{display:flex;justify-content:space-between;gap:2mm;margin-bottom:1.3mm}
+.compact-totals .compact-due{background:#eaf6f3;padding:1.7mm 1mm;font-weight:700;color:#087f73;align-items:center}
+.compact-due strong{color:#173847;font-size:11pt;white-space:nowrap}
+.compact-totals small{font-size:7pt;color:#087f73}
+.compact-qr{width:22mm;align-self:center;text-align:center;flex-shrink:0}
+.compact-qr img{width:22mm;height:22mm;object-fit:contain;padding:1mm;background:#fff}
+.compact-qr span{display:block;font-size:6pt}
+.compact-upi{max-width:25mm;align-self:center;min-width:0;font-size:7pt;line-height:1.4;overflow-wrap:anywhere}
+.compact-upi strong,.compact-upi span{display:block}
+.compact-footer{font-size:6.5pt;color:#52656e;text-align:center;line-height:1.2;margin-top:1mm;overflow-wrap:anywhere}
+@media(max-width:760px){.bill-customer-list{grid-template-columns:1fr}.batch-dates{grid-template-columns:1fr}.payment-table{font-size:.8rem}.payment-table td,.payment-table th{padding:10px 5px}.payment-table .icon-btn{padding:8px 6px}.bill-customer-choice{padding:10px}.payment-history{scroll-margin-top:85px}}
+@media print{
+  @page{size:A4;margin:8mm}
+  body.printing-slips #printInvoice{width:194mm;margin:0;padding:0}
+  .bill-sheet{margin:0;box-shadow:none;break-after:page;page-break-after:always;break-inside:avoid;page-break-inside:avoid}
+  .bill-sheet:last-child{break-after:auto;page-break-after:auto}
+  .compact-bill{break-inside:avoid;page-break-inside:avoid;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+}

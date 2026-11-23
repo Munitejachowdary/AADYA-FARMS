@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#7f1020">
+  <title>Aadya Farms Milk Ledger</title>
+  <meta name="description" content="Offline customer milk and curd delivery tracker with monthly invoice printing and WhatsApp sharing.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=5">
+  <link rel="apple-touch-icon" href="assets/aadya-logo.png?v=5">
+  <link rel="stylesheet" href="styles.css?v=12">
+  <link rel="stylesheet" href="bills.css?v=4">
+</head>
+<body data-role="loading">
+  <div class="app-shell">
+    <header class="topbar no-print">
+      <div class="brand-lockup">
+        <img id="headerLogo" src="assets/aadya-logo.png" alt="Aadya Farms">
+        <div><p class="eyebrow">MILK LEDGER</p><h1>Aadya Farms</h1></div>
+      </div>
+      <div class="top-actions">
+        <span class="user-role-pill" id="userRolePill" title="Signed-in access">Checking access…</span>
+        <span class="offline-pill" id="connectionPill"><span></span>Connecting to online ledger…</span>
+        <button class="btn ghost desktop-only" type="button" data-action="backup" data-admin-only>Backup data</button>
+      </div>
+    </header>
+
+    <nav class="main-nav no-print" aria-label="Main navigation">
+      <button class="nav-item active" type="button" data-view="dashboard" data-admin-only><span>⌂</span>Dashboard</button>
+      <button class="nav-item" type="button" data-view="customers"><span>♙</span>Customers</button>
+      <button class="nav-item" type="button" data-view="farmers"><span>♜</span>Farmers</button>
+      <button class="nav-item" type="button" data-view="ledger"><span>＋</span>Add milk</button>
+      <button class="nav-item" type="button" data-view="invoices"><span>▤</span>Invoices</button>
+      <button class="nav-item" type="button" data-view="settings" data-admin-only><span>⚙</span>Settings</button>
+    </nav>
+
+    <main class="workspace no-print" id="workspace">
+      <section class="view active" id="view-dashboard" data-page="dashboard" data-admin-only>
+        <div class="page-head">
+          <div><p class="eyebrow">OVERVIEW</p><h2 id="dashboardGreeting">Good day</h2><p class="muted">Record deliveries quickly. Approved logins share the same online ledger.</p></div>
+          <div class="dashboard-head-actions">
+            <label class="dashboard-month-control"><span>Dashboard month</span><input id="dashboardMonth" type="month" aria-label="Dashboard month"></label>
+            <button class="btn primary" type="button" data-go="ledger">+ Add deliveries</button>
+          </div>
+        </div>
+        <div class="sample-banner" id="sampleBanner"><div><strong>Sample customer added:</strong> Muni, September 2026, 100 L at ₹80/L.</div><button class="text-btn" type="button" data-action="dismiss-sample">Got it</button></div>
+        <div class="metric-grid">
+          <article class="metric-card accent"><p>Amount due</p><strong id="metricDue">₹0</strong><span id="metricMonth">This month</span></article>
+          <article class="metric-card"><p>Milk supplied</p><strong id="metricMilk">0 L</strong><span data-dashboard-period>This month</span></article>
+          <article class="metric-card"><p>Active customers</p><strong id="metricCustomers">0</strong><span id="metricCustomersPeriod">With entries this month</span></article>
+          <article class="metric-card"><p>Payments applied</p><strong id="metricPayments">₹0</strong><span data-dashboard-period>This month</span></article>
+        </div>
+        <button class="bottle-summary" id="bottleSummary" type="button" data-action="view-pending-bottles"><span><strong id="dashboardPendingBottles">0 bottles pending</strong><small id="dashboardBottleHelp">All delivered bottles have been returned.</small></span><b>View bottle returns</b></button>
+        <div class="two-column">
+          <section class="panel">
+            <div class="panel-head"><div><p class="eyebrow">QUICK ENTRY</p><h3>Add several days at once</h3></div><span class="tag">Fastest</span></div>
+            <form id="quickBulkForm" class="form-grid compact">
+              <label class="span-2">Customer<select name="customerId" required data-customer-select></select></label>
+              <label>From<input name="startDate" type="date" required></label><label>To<input name="endDate" type="date" required></label>
+              <label>Item<select name="item"><option>Milk</option><option>Curd</option><option>Other</option></select></label>
+              <label>Schedule<select name="schedule"><option value="daily">Every day</option><option value="alternate">Alternate days</option><option value="specific">Chosen day numbers</option></select></label>
+              <label>Quantity<input name="quantity" type="number" min="0" step="0.05" value="1" required></label>
+              <label>Unit<select name="unit"><option value="L">litres</option><option value="ml">ml</option><option value="pack">pack/item</option></select></label>
+              <label>Rate (₹)<input name="rate" type="number" min="0" step="0.01" value="80" required></label>
+              <label>Chosen days<input name="specificDays" inputmode="numeric" placeholder="1, 3, 7, 10"></label>
+              <label class="span-2">Note<input name="notes" placeholder="Morning milk, curd cup, etc."></label>
+              <div class="span-2 form-actions"><button class="btn primary wide" type="submit">Add all matching days</button></div>
+            </form>
+          </section>
+          <section class="panel">
+            <div class="panel-head"><div><p class="eyebrow">SELECTED MONTH</p><h3 id="dashboardEntriesTitle">Latest entries</h3></div><button class="text-btn" type="button" data-action="view-dashboard-ledger">View ledger</button></div>
+            <div id="recentEntries" class="activity-list"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="view" id="view-customers" data-page="customers">
+        <div class="page-head"><div><p class="eyebrow">CUSTOMERS</p><h2>Customer book</h2><p class="muted">Store the phone number with country code so WhatsApp sharing works.</p></div></div>
+        <div class="two-column customers-layout">
+          <section class="panel sticky-panel">
+            <div class="panel-head"><div><p class="eyebrow" id="customerModeLabel">NEW CUSTOMER</p><h3 id="customerFormTitle">Add a customer</h3></div><button class="btn ghost" type="button" data-action="new-customer">+ New customer</button></div>
+            <form id="customerForm" class="form-grid">
+              <label class="span-2">Customer name<input name="name" required maxlength="100" placeholder="Muni"></label>
+              <label class="span-2">WhatsApp phone<input name="phone" inputmode="tel" placeholder="919876543210"></label>
+              <label class="span-2">Delivery address / location<textarea name="address" rows="2" placeholder="Apartment / street / area"></textarea></label>
+              <label class="span-2">Delivery route<select name="routeId" data-route-select></select></label>
+              <label>Default milk quantity<input name="defaultQty" type="number" min="0" step="0.05" value="1"></label>
+              <label>Unit<select name="defaultUnit"><option value="L">litres</option><option value="ml">ml</option></select></label>
+              <div class="span-2 form-actions"><button class="btn primary" id="customerSaveButton" type="submit">Add customer</button><button class="btn ghost" type="reset">Clear / cancel edit</button></div>
+            </form>
+          </section>
+          <section class="panel">
+            <div class="panel-head wrap"><div><p class="eyebrow">ALL CUSTOMERS</p><h3 id="customerCountHeading">0 customers</h3></div><div class="filter-row"><select id="customerRouteFilter" data-route-select data-allow-all="true" aria-label="Filter customers by route"></select><input id="customerSearch" class="search" placeholder="Search"></div></div>
+            <div id="customerList" class="customer-list"></div>
+          </section>
+        </div>
+        <section class="panel supply-pause-panel">
+          <div class="panel-head wrap"><div><p class="eyebrow">WHATSAPP TRAVEL REQUESTS</p><h3>Stop milk for selected dates</h3></div><span class="tag">Updates daily lists</span></div>
+          <p class="field-help pause-intro">When a customer sends travel dates on WhatsApp, save them here. The customer will be marked “No milk” and cannot be selected on those delivery dates.</p>
+          <form id="supplyPauseForm" class="form-grid pause-form">
+            <label class="span-2">Customer<select name="customerId" required data-customer-select></select></label>
+            <label>Stop from<input name="startDate" type="date" required></label><label>Stop through<input name="endDate" type="date" required></label>
+            <label class="span-2">Note<input name="notes" placeholder="Travelling, resume after return, etc."></label>
+            <div class="span-2 form-actions"><button class="btn primary" type="submit">Save no-milk dates</button></div>
+          </form>
+          <div class="table-wrap pause-history"><table class="payment-table"><thead><tr><th>Customer</th><th>No milk dates</th><th>Route</th><th>Note</th><th>Actions</th></tr></thead><tbody id="supplyPauseRows"></tbody></table></div>
+        </section>
+      </section>
+
+      <section class="view" id="view-farmers" data-page="farmers">
+        <div class="page-head"><div><p class="eyebrow">MILK PROVIDERS</p><h2>Farmer collection book</h2><p class="muted">Track morning and evening milk, quality tests, purchase value and monthly payments.</p></div></div>
+
+        <div class="metric-grid farmer-metrics">
+          <article class="metric-card accent"><p>Milk collected</p><strong id="farmerMetricLitres">0 L</strong><span id="farmerMetricMonth">This month</span></article>
+          <article class="metric-card"><p>Purchase value</p><strong id="farmerMetricPurchase">₹0</strong><span>Litres × buying rate</span></article>
+          <article class="metric-card"><p>Paid to farmers</p><strong id="farmerMetricPaid">₹0</strong><span>Payments in selected month</span></article>
+          <article class="metric-card"><p>Remaining payable</p><strong id="farmerMetricDue">₹0</strong><span>Purchase value − paid</span></article>
+        </div>
+
+        <div class="two-column farmer-entry-layout">
+          <section class="panel">
+            <div class="panel-head"><div><p class="eyebrow" id="farmerModeLabel">NEW FARMER</p><h3 id="farmerFormTitle">Add a milk provider</h3></div><button class="btn ghost" type="button" data-action="new-farmer">+ New farmer</button></div>
+            <form id="farmerForm" class="form-grid">
+              <label class="span-2">Farmer name<input name="name" required maxlength="100" placeholder="Farmer name"></label>
+              <label>Phone<input name="phone" inputmode="tel" placeholder="9876543210"></label>
+              <label>Village / area<input name="village" placeholder="Village or address"></label>
+              <label class="span-2">Default buying rate (₹/L)<input name="defaultRate" type="number" min="0" step="0.01" value="60" required></label>
+              <div class="span-2 form-actions"><button class="btn primary" id="farmerSaveButton" type="submit">Add farmer</button><button class="btn ghost" type="reset">Clear / cancel edit</button></div>
+            </form>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head"><div><p class="eyebrow">DAILY COLLECTION</p><h3>Record milk and test results</h3></div><span class="tag">₹60/L default</span></div>
+            <form id="farmerCollectionForm" class="form-grid">
+              <label class="span-2">Farmer<select name="farmerId" required data-farmer-select></select></label>
+              <label>Date<input name="date" type="date" required></label>
+              <label>Session<select name="session"><option value="morning">Morning</option><option value="evening">Evening</option></select></label>
+              <label>Milk litres<input name="litres" type="number" min="0.001" step="0.001" placeholder="0.000" required></label>
+              <label>Buying rate (₹/L)<input name="rate" type="number" min="0" step="0.01" value="60" required></label>
+              <div class="span-2 quality-grid">
+                <label>FAT %<input name="fat" type="number" min="0" max="100" step="0.01" placeholder="Optional"></label>
+                <label>SNF %<input name="snf" type="number" min="0" max="100" step="0.01" placeholder="Optional"></label>
+                <label>Water %<input name="water" type="number" min="0" max="100" step="0.01" placeholder="Optional"></label>
+                <label>Protein %<input name="protein" type="number" min="0" max="100" step="0.01" placeholder="Optional"></label>
+              </div>
+              <label class="span-2">Note<input name="notes" placeholder="Can number, test remark, etc."></label>
+              <div class="span-2 calculated-preview" id="farmerCollectionPreview">Enter litres to calculate the purchase amount.</div>
+              <div class="span-2 form-actions"><button class="btn primary wide" type="submit">Save milk collection</button></div>
+            </form>
+          </section>
+        </div>
+
+        <section class="panel farmer-list-panel">
+          <div class="panel-head wrap"><div><p class="eyebrow">ALL PROVIDERS</p><h3 id="farmerCountHeading">0 farmers</h3></div><input id="farmerSearch" class="search" type="search" placeholder="Search farmer"></div>
+          <div id="farmerList" class="customer-list"></div>
+        </section>
+
+        <section class="panel farmer-summary-panel">
+          <div class="panel-head wrap"><div><p class="eyebrow">MONTH-END PAYABLE</p><h3>Farmer monthly summary</h3></div><label class="month-filter">Month<input id="farmerSummaryMonth" type="month"></label></div>
+          <p class="field-help summary-help">Quality averages are weighted by the litres in each tested collection. Blank test fields are ignored.</p>
+          <div class="table-wrap"><table class="data-table farmer-summary-table"><thead><tr><th>Farmer</th><th>Morning</th><th>Evening</th><th>Total</th><th>Avg FAT</th><th>Avg SNF</th><th>Avg water</th><th>Avg protein</th><th>Purchase</th><th>Paid</th><th>Payable</th></tr></thead><tbody id="farmerSummaryRows"></tbody></table></div>
+        </section>
+
+        <div class="two-column farmer-history-layout">
+          <section class="panel">
+            <div class="panel-head wrap"><div><p class="eyebrow">COLLECTION RECORDS</p><h3 id="farmerCollectionHeading">Milk collection history</h3></div><div class="filter-row farmer-filters"><select id="farmerCollectionFilter" data-farmer-select data-allow-all="true" aria-label="Filter collections by farmer"></select><input id="farmerCollectionMonth" type="month" aria-label="Filter collections by month"></div></div>
+            <div class="table-wrap"><table class="data-table"><thead><tr><th>Date</th><th>Farmer</th><th>Session</th><th>Litres</th><th>Rate</th><th>Milk tests</th><th>Amount</th><th>Action</th></tr></thead><tbody id="farmerCollectionRows"></tbody></table></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head"><div><p class="eyebrow">FARMER PAYMENTS</p><h3>Record amount paid</h3></div></div>
+            <form id="farmerPaymentForm" class="form-grid">
+              <label class="span-2">Farmer<select name="farmerId" required data-farmer-select></select></label>
+              <label>Date<input name="date" type="date" required></label>
+              <label>Amount paid (₹)<input name="amount" type="number" min="0.01" step="0.01" required></label>
+              <label class="span-2">Note<input name="notes" placeholder="Cash / UPI / bank"></label>
+              <div class="span-2 form-actions"><button class="btn primary wide" type="submit">Record farmer payment</button></div>
+            </form>
+            <div class="payment-history farmer-payment-history">
+              <div class="panel-head wrap"><div><p class="eyebrow">PAYMENT HISTORY</p><h3 id="farmerPaymentHeading">Payments made</h3></div><strong id="farmerPaymentsTotal">₹0</strong></div>
+              <div class="filter-row farmer-payment-filters"><select id="farmerPaymentFilter" data-farmer-select data-allow-all="true" aria-label="Filter farmer payments"></select><input id="farmerPaymentMonth" type="month" aria-label="Filter farmer payments by month"></div>
+              <div class="table-wrap"><table class="payment-table"><thead><tr><th>Date</th><th>Farmer / note</th><th>Paid</th><th>Action</th></tr></thead><tbody id="farmerPaymentRows"></tbody></table></div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="view" id="view-ledger" data-page="ledger">
+        <div class="page-head"><div><p class="eyebrow">DELIVERIES</p><h2>Milk and curd ledger</h2><p class="muted">Tick customers for today's delivery, or use a date range for a week or ten days.</p></div></div>
+        <div class="two-column ledger-layout">
+          <section class="panel sticky-panel">
+            <div class="segmented" role="tablist"><button class="active" type="button" data-entry-mode="daily">Daily list</button><button type="button" data-entry-mode="range">Date range</button><button type="button" data-entry-mode="csv">CSV</button><button type="button" data-entry-mode="payment">Payment</button></div>
+            <div id="entryDailyPanel">
+              <form id="dailyListForm">
+                <div class="daily-toolbar"><label>Date<input id="dailyEntryDate" name="date" type="date" required></label><label>Delivery route<select id="dailyRouteFilter" data-route-select data-allow-all="true"></select></label><label>Find customer<input id="dailyCustomerSearch" type="search" placeholder="Type a name or phone"></label></div>
+                <p id="dailyRoutePartner" class="route-partner field-help"></p>
+                <div class="daily-actions"><button class="text-btn" type="button" data-action="daily-select-visible">Select visible</button><button class="text-btn" type="button" data-action="daily-clear">Clear selection</button></div>
+                <div id="dailyCustomerRows" class="daily-customer-list"></div>
+                <p id="dailyEntryStatus" class="field-help">Tick only customers who received something. Bottle returned is selected by default.</p>
+                <button class="btn primary wide" type="submit">Add selected records</button>
+              </form>
+            </div>
+            <div id="entryRangePanel" hidden>
+              <form id="bulkForm" class="form-grid">
+                <label class="span-2">Customer<select name="customerId" required data-customer-select></select></label>
+                <label>From<input name="startDate" type="date" required></label><label>To<input name="endDate" type="date" required></label>
+                <label>Item<select name="item"><option>Milk</option><option>Curd</option><option>Other</option></select></label>
+                <label>Schedule<select name="schedule"><option value="daily">Every day</option><option value="alternate">Alternate days</option><option value="specific">Chosen day numbers</option></select></label>
+                <label>Quantity<input name="quantity" type="number" min="0" step="0.05" value="1" required></label>
+                <label>Unit<select name="unit"><option value="L">litres</option><option value="ml">ml</option><option value="pack">pack/item</option></select></label>
+                <label>Rate (₹)<input name="rate" type="number" min="0" step="0.01" value="80" required></label>
+                <label>Chosen days<input name="specificDays" inputmode="numeric" placeholder="1, 3, 7"></label>
+                <label class="span-2">Note<input name="notes" placeholder="Optional"></label><div class="span-2 calculated-preview" id="bulkPreview">Choose a date range to see the total.</div>
+                <div class="span-2 form-actions"><button class="btn primary wide" type="submit">Add deliveries</button></div>
+              </form>
+            </div>
+            <div id="entryCsvPanel" hidden>
+              <form id="csvForm" class="form-grid">
+                <label class="span-2">Customer<select name="customerId" required data-customer-select></select></label>
+                <label class="span-2">Paste rows<textarea name="rows" rows="8" placeholder="2026-09-01,Milk,1,L,80\n2026-09-02,Milk,750,ml,80\n2026-09-03,Curd,1,pack,50"></textarea></label>
+                <p class="field-help span-2">One row per date: date, item, quantity, unit, rate. For milk, rate is per litre.</p>
+                <label class="upload-label span-2">Upload CSV<input id="csvFile" type="file" accept=".csv,text/csv"></label>
+                <div class="span-2 form-actions"><button class="btn primary wide" type="submit">Import rows</button></div>
+              </form>
+            </div>
+            <div id="entryPaymentPanel" hidden>
+              <form id="paymentForm" class="form-grid">
+                <label class="span-2">Customer<select name="customerId" required data-customer-select></select></label><label>Received date<input name="date" type="date" required></label>
+                <label>Apply to bill month<input name="billMonth" type="month" required></label><label>Amount received (₹)<input name="amount" type="number" min="0.01" step="0.01" required></label><label>Note<input name="notes" placeholder="Cash / UPI / bank"></label>
+                <p class="field-help span-2">Example: money received on 5 November can be applied to the October bill.</p>
+                <div class="span-2 form-actions"><button class="btn primary wide" type="submit">Record payment</button></div>
+              </form>
+              <p class="field-help payment-history-link"><a href="#paymentHistory">View payment history and delete mistakes</a></p>
+            </div>
+          </section>
+          <section class="panel ledger-panel">
+            <div class="panel-head wrap"><div><p class="eyebrow">DELIVERIES & PAYMENTS</p><h3 id="ledgerHeading">All entries</h3></div><div class="filter-row"><select id="ledgerCustomer" aria-label="History customer" data-customer-select></select><input id="ledgerMonth" aria-label="History month" type="month"></div></div>
+            <div class="table-wrap"><table class="data-table"><thead><tr><th>Date</th><th>Customer</th><th>Item</th><th>Qty</th><th>Rate</th><th>Amount</th><th>Bottle</th><th></th></tr></thead><tbody id="ledgerRows"></tbody></table></div>
+            <section id="bottleReturns" class="payment-history" aria-labelledby="bottleReturnsTitle">
+              <div class="panel-head wrap"><div><p class="eyebrow">BOTTLE RETURNS</p><h3 id="bottleReturnsTitle">Pending bottles</h3></div><strong id="pendingBottleTotal">0 pending</strong></div>
+              <p class="field-help">A pending bottle stays here until you mark it returned.</p>
+              <div class="table-wrap"><table class="payment-table"><thead><tr><th>Delivery date</th><th>Customer</th><th>Route</th><th>Action</th></tr></thead><tbody id="pendingBottleRows"></tbody></table></div>
+            </section>
+            <section id="paymentHistory" class="payment-history" aria-labelledby="paymentHistoryTitle">
+              <div class="panel-head wrap"><div><p class="eyebrow">PAYMENTS RECEIVED</p><h3 id="paymentHistoryTitle">Payment history</h3></div><strong id="paymentsHistoryTotal">₹0</strong></div>
+              <p class="field-help" id="paymentsHistorySummary"></p>
+              <div class="table-wrap"><table class="payment-table"><thead><tr><th>Received date</th><th>Customer / note</th><th>Bill month</th><th>Received</th><th>Action</th></tr></thead><tbody id="paymentRows"></tbody></table></div>
+            </section>
+          </section>
+        </div>
+      </section>
+
+      <section class="view" id="view-invoices" data-page="invoices">
+        <div class="page-head"><div><p class="eyebrow">INVOICES</p><h2>Monthly bills</h2><p class="muted">Dates are always shown from the 1st to the end of the month.</p></div></div>
+        <div class="invoice-mode-switch" role="group" aria-label="Bill format"><button class="btn primary" type="button" data-invoice-mode="detailed" aria-pressed="true">Detailed invoice</button><button class="btn ghost" type="button" data-invoice-mode="slips" aria-pressed="false">Print bills · 8 per A4</button></div>
+        <section id="batchBillsPanel" hidden>
+          <div class="panel">
+            <div class="panel-head wrap"><div><p class="eyebrow">COMPACT CUSTOMER BILLS</p><h3>8 bills on one A4 sheet</h3></div><span class="tag">2 columns × 4 rows</span></div>
+            <div class="form-grid batch-dates"><label>From (included)<input id="billStartDate" type="date" required></label><label>To (included)<input id="billEndDate" type="date" required></label><label>Bill date<input id="billDate" type="date" required></label></div>
+            <p class="field-help batch-help">Totals use deliveries and payments dated within this period. Earlier balances are not included. Each slip shows the logo, litres, rate, curd/other charges, total, received and amount due.</p>
+            <div class="panel-head wrap"><h3>Select customers</h3><div class="form-actions"><button class="text-btn" type="button" data-action="select-all-bills">Select all</button><button class="text-btn" type="button" data-action="select-no-bills">Clear selection</button></div></div>
+            <div id="billCustomerList" class="bill-customer-list"></div>
+            <p id="batchBillStatus" role="status" class="calculated-preview"></p>
+            <div class="form-actions wrap"><button class="btn primary" id="downloadBatchBills" type="button" data-action="download-batch-bills">Download A4 PDF</button><button class="btn ghost" id="printBatchBills" type="button" data-action="print-batch-bills">Print selected bills</button></div>
+            <p class="field-help batch-help">Print on A4 at 100% / Actual size. More than 8 selected customers continue on the next sheet.</p>
+          </div>
+          <div id="batchBillsPreview" class="batch-preview" aria-label="Selected bills preview"></div>
+        </section>
+        <div id="detailedInvoicePanel">
+        <section class="panel invoice-toolbar">
+          <label>Customer<select id="invoiceCustomer" data-customer-select></select></label><label>Month<input id="invoiceMonth" type="month"></label>
+          <label>Custom WhatsApp message<textarea id="invoiceMessage" rows="2"></textarea></label>
+          <div class="invoice-actions"><button class="btn primary" type="button" data-action="download-invoice-image">Download image</button><button class="btn whatsapp" type="button" data-action="share-invoice-image">Share image</button><button class="btn ghost" type="button" data-action="download-invoice">PDF</button><button class="btn ghost" type="button" data-action="whatsapp-text">Message only</button><button class="btn ghost" type="button" data-action="print-invoice">Print</button></div>
+          <p class="field-help share-pdf-tip">Share image creates one complete PNG bill. On your phone, choose WhatsApp and then the customer. PDF and print remain available.</p>
+        </section>
+        <section class="panel reminder-panel">
+          <div class="panel-head wrap"><div><p class="eyebrow">PAYMENT REMINDERS</p><h3>Share one reminder to many customers</h3></div><span class="tag" id="bulkReminderCount">0 due</span></div>
+          <label class="reminder-message-label">Reminder message<textarea id="bulkReminderMessage" rows="3"></textarea></label>
+          <p class="field-help" id="bulkReminderSummary">Choose a bill month to see customers with an amount due.</p>
+          <div id="bulkReminderCustomers" class="reminder-customer-chips"></div>
+          <div class="form-actions reminder-actions"><button class="btn whatsapp" type="button" data-action="share-bulk-reminder">Share reminder to many</button><button class="btn ghost" type="button" data-action="copy-bulk-reminder">Copy reminder</button></div>
+          <p class="field-help">On a compatible phone, choose WhatsApp and select multiple contacts. Fully automatic background sending requires the WhatsApp Business Cloud API.</p>
+        </section>
+        <div id="invoicePreviewHost"></div>
+        <section class="panel send-queue-panel">
+          <div class="panel-head"><div><p class="eyebrow">MONTHLY SEND QUEUE</p><h3>Customers ready to bill</h3></div><span class="tag">WhatsApp</span></div>
+          <p class="field-help">Personal WhatsApp requires you to confirm each send. Tap Share for each customer. Automatic bulk sending needs the official WhatsApp Business API.</p>
+          <div id="sendQueue" class="send-queue"></div>
+        </section>
+        </div>
+      </section>
+
+      <section class="view" id="view-settings" data-page="settings" data-admin-only>
+        <div class="page-head"><div><p class="eyebrow">SETTINGS</p><h2>Business and backup</h2><p class="muted">Records are saved online for approved logins, with a local copy on this device.</p></div></div>
+        <div class="two-column">
+          <section class="panel">
+            <div class="panel-head"><div><p class="eyebrow">BUSINESS & ROUTES</p><h3>Aadya Farms details</h3></div></div>
+            <form id="settingsForm" class="form-grid">
+              <label class="span-2">Business name<input name="businessName" required></label><label>Phone<input name="phone" inputmode="tel"></label><label>UPI ID<input name="upiId" placeholder="name@bank"></label>
+              <label class="span-2">Address<textarea name="address" rows="2"></textarea></label><label>Default milk rate (₹/L)<input name="defaultMilkRate" type="number" min="0" step="0.01"></label><label>Invoice prefix<input name="invoicePrefix" maxlength="8"></label>
+              <label>Route 1 name<input name="route1Name" placeholder="Route 1"></label><label>Route 1 delivery partner<input name="route1Partner" placeholder="Partner name"></label>
+              <label>Route 2 name<input name="route2Name" placeholder="Route 2"></label><label>Route 2 delivery partner<input name="route2Partner" placeholder="Partner name"></label>
+              <label class="span-2">Default WhatsApp message<textarea name="messageTemplate" rows="4"></textarea></label><p class="field-help span-2">Use {name}, {month}, {amount}, {invoice} and {business}.</p>
+              <label class="upload-label">Change logo<input id="logoFile" type="file" accept="image/*"></label><label class="upload-label">Upload payment QR<input id="qrFile" type="file" accept="image/*"></label>
+              <div class="span-2 image-previews"><img id="logoPreview" alt="Business logo preview"><div id="qrPreviewWrap"><img id="qrPreview" alt="Payment QR preview"><span>No QR uploaded</span></div></div>
+              <div class="span-2 form-actions"><button class="btn primary" type="submit">Save settings</button></div>
+            </form>
+          </section>
+          <section class="panel">
+            <div class="panel-head"><div><p class="eyebrow">YOUR DATA</p><h3>Backup and restore</h3></div></div>
+            <div class="settings-actions">
+              <button class="setting-row" type="button" data-action="backup"><span><strong>Download backup</strong><small>Save customers, routes, no-milk dates, bottle status, farmers, payments and settings as one file</small></span><b>↓</b></button>
+              <label class="setting-row"><span><strong>Restore backup</strong><small>Import a previous Aadya Ledger backup</small></span><b>↑</b><input id="restoreFile" type="file" accept="application/json,.json"></label>
+              <button class="setting-row danger" type="button" data-action="clear-all"><span><strong>Erase all local data</strong><small>This cannot be undone without a backup</small></span><b>×</b></button>
+            </div>
+            <div class="privacy-note"><strong>Online + local safety copy</strong><p>Approved logins share the same backend records. Make a backup regularly so you also have your own downloadable copy.</p></div>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
+  <section id="printInvoice" class="print-only" aria-hidden="true"></section>
+  <div id="toast" class="toast no-print" role="status" aria-live="polite"></div>
+  <dialog id="confirmDialog"><form method="dialog"><h3 id="dialogTitle">Confirm</h3><p id="dialogText"></p><div class="dialog-actions"><button class="btn ghost" value="cancel">Cancel</button><button class="btn danger-btn" id="dialogConfirm" value="confirm">Continue</button></div></form></dialog>
+  <dialog id="shareHelpDialog"><form method="dialog"><h3>Share the bill image from your phone</h3><p>This browser cannot attach the bill image to its sharing screen, so the image was downloaded instead. Open WhatsApp and attach the downloaded PNG image to the customer.</p><div class="dialog-actions"><button class="btn whatsapp" value="ok">OK</button></div></form></dialog>
+  <script src="assets/pdf-lib.min.js"></script><script src="assets/fontkit.umd.min.js"></script><script src="assets/pdf-fonts.js"></script><script src="ledger-core.js?v=12"></script><script src="app.js?v=12"></script>
+</body>
+</html>
