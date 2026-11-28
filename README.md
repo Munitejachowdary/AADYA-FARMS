@@ -20,10 +20,55 @@ The header displays `Saved online · shared` when synchronization succeeds. Chan
 
 ## Access
 
-The site is restricted by its Sites access list. The backend additionally accepts only these authenticated emails:
+The ChatGPT-hosted site is restricted by its Sites access list. The standalone
+Cloudflare Worker must be protected by Cloudflare Access. In both environments,
+the backend additionally accepts only these authenticated emails:
 
+- `aadyafarms08@gmail.com`
 - `muniteja@mcsquared.ai`
 - `munitejachowdary@gmail.com`
+- `s.kachavarapu@gmail.com`
+
+The Cloudflare version validates the signed `Cf-Access-Jwt-Assertion` using the
+Access team domain and application audience. Set both non-secret variables in
+`wrangler.deploy.jsonc` after creating the Access application:
+
+```json
+"vars": {
+  "CF_ACCESS_TEAM_DOMAIN": "https://YOUR-TEAM.cloudflareaccess.com",
+  "CF_ACCESS_AUD": "YOUR-APPLICATION-AUD-TAG"
+}
+```
+
+## Cloudflare deployment
+
+Production resources:
+
+- Worker: `aadya-farms-ledger`
+- URL: `https://aadya-farms-ledger.aadyafarms08.workers.dev`
+- D1 database: `aadya-farms-ledger`
+
+Requirements: Node.js 22 or newer, pnpm, and a Cloudflare account with Workers
+and D1 access.
+
+```bash
+pnpm install --frozen-lockfile
+pnpm exec wrangler login --device
+pnpm cloudflare:db:migrate
+pnpm cloudflare:deploy
+```
+
+Run the database migration only when creating a new empty database. Regular
+code updates require only `pnpm cloudflare:deploy`.
+
+Before using the Worker, open Cloudflare **Workers & Pages →
+aadya-farms-ledger → Access**, protect **All traffic**, and restrict the policy
+to the approved email addresses above. Copy the resulting team domain and AUD
+tag into the variables shown above, then deploy once more.
+
+The original ChatGPT-hosted site and its database remain separate. Download a
+JSON backup from that site and restore it in the Cloudflare version after Access
+is working; deploying this Worker does not delete or move the original records.
 
 ## Backup
 
