@@ -155,6 +155,7 @@ test('invalid farmer records do not mutate data and individual mistakes can be d
 
 test('all current accounts are admins and unknown accounts are rejected', async () => {
   const { getRoleForEmail } = await import('../app/api/state/access.js');
+  assert.equal(getRoleForEmail('aadyafarms08@gmail.com'), 'admin');
   assert.equal(getRoleForEmail('muniteja@mcsquared.ai'), 'admin');
   assert.equal(getRoleForEmail(' MUNITEJACHOWDARY@GMAIL.COM '), 'admin');
   assert.equal(getRoleForEmail('s.kachavarapu@gmail.com'), 'admin');
