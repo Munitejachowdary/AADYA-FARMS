@@ -1,5 +1,5 @@
 import { eq, sql } from "drizzle-orm";
-import { headers } from "next/headers";
+import { getAuthenticatedUser } from "../../authenticated-user";
 import { getDb } from "../../../db";
 import { ledgerState } from "../../../db/schema";
 import { getRoleForEmail, operatorMutationError } from "./access.js";
@@ -7,11 +7,10 @@ import { getRoleForEmail, operatorMutationError } from "./access.js";
 type UserRole = "admin" | "operator";
 
 async function currentUser() {
-  const h = await headers();
-  const id = h.get("oai-authenticated-user-id");
-  const email = h.get("oai-authenticated-user-email")?.trim().toLowerCase() ?? "";
-  const role = getRoleForEmail(email) as UserRole | null;
-  return id && role ? { id, email, role } : null;
+  const identity = await getAuthenticatedUser();
+  if (!identity) return null;
+  const role = getRoleForEmail(identity.email) as UserRole | null;
+  return role ? { ...identity, role } : null;
 }
 
 function validLedger(value: unknown): value is Record<string, unknown> {

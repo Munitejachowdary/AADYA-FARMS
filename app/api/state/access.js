@@ -1,4 +1,5 @@
 export const USER_ROLES = Object.freeze({
+  "aadyafarms08@gmail.com": "admin",
   "muniteja@mcsquared.ai": "admin",
   "munitejachowdary@gmail.com": "admin",
   "s.kachavarapu@gmail.com": "admin",
